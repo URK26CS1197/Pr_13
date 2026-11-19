@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ecosphere</title>
+<style>
+html { scroll-behavior: smooth; }
+body {
+  font-family: Arial, sans-serif;
+  background-color: #e8f1ee;
+  color: #10302b;
+  margin: 0;
+}
+header { background-color: white; text-align: center; padding: 15px; }
+header h1 { color: #1b6b5f; margin: 0; }
+
+/* ---------- STICKY navigation bar (sticky + z-index) ---------- */
+nav {
+  display: flex; justify-content: center; flex-wrap: wrap;
+  background: #10302b;
+  position: sticky; top: 0; z-index: 100;
+}
+nav a, nav button {
+  padding: 15px 18px;
+  color: white;
+  text-decoration: none;
+  background: #10302b;
+  border: none;
+  font-size: 16px;
+  font-family: inherit;
+  cursor: pointer;
+}
+nav a:hover, nav button:hover { background: #1b6b5f; }
+
+/* ---------- Dropdown: RELATIVE parent + ABSOLUTE child ---------- */
+.dropdown { position: relative; }
+.content { display: none; position: absolute; top: 100%; left: 0; min-width: 200px; background: #0b221e; z-index: 110; }
+.content a { display: block; padding: 12px 18px; }
+.dropdown:hover .content, .dropdown:focus-within .content { display: block; }
+.apply { background: #1b6b5f; }
+
+.music { background-color: white; text-align: center; padding: 10px; }
+
+/* ---------- Banner with ABSOLUTE label on a RELATIVE hero ---------- */
+.hero { position: relative; }
+.banner { display: block; width: 100%; height: 300px; object-fit: cover; }
+.banner-label {
+  position: absolute; left: 20px; bottom: 20px; z-index: 2;
+  background: rgba(16, 48, 43, 0.85); color: white;
+  padding: 8px 14px; border-radius: 4px; font-weight: bold;
+}
+
+/* ---------- Page layout: sidebar + main ---------- */
+.layout {
+  display: flex; align-items: flex-start; gap: 20px;
+  width: 95%; max-width: 1200px; margin: 20px auto;
+}
+.sidebar {
+  flex: 0 0 170px;
+  position: sticky; top: 70px; z-index: 20;
+  background: white; padding: 12px; border-radius: 4px;
+}
+.sidebar h3 { margin: 0 0 8px 0; color: #1b6b5f; }
+.sidebar a { display: block; padding: 6px 0; color: #10302b; text-decoration: none; }
+.sidebar a:hover { color: #1b6b5f; text-decoration: underline; }
+main { flex: 1; min-width: 0; }
+
+/* ---------- QUADRANT layout (absolute positioning) ---------- */
+.media h2 { margin-top: 0; }
+.quadrants { position: relative; height: 660px; background: white; }
+.box {
+  position: absolute; width: 50%; height: 50%;
+  box-sizing: border-box; padding: 10px;
+  scroll-margin-top: 70px;
+}
+.box h3 { margin: 0 0 6px 0; }
+.box iframe, .box video { width: 100%; height: calc(100% - 34px); border: 0; }
+#pdf     { top: 0;    left: 0; }
+#youtube { top: 0;    right: 0; }
+#video   { bottom: 0; left: 0; }
+#map     { bottom: 0; right: 0; }
+
+/* ---------- CENTERED section (absolute + transform) ---------- */
+.center-badge {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  width: 90px; height: 90px; border-radius: 50%;
+  background: #1b6b5f; color: white; border: 4px solid white;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; font-weight: bold; font-size: 14px;
+}
+
+.form-section { width: 100%; max-width: 500px; margin: 30px auto; scroll-margin-top: 70px; }
+.form-section input,
+.form-section select,
+.form-section textarea {
+  width: 100%;
+  padding: 8px;
+  margin: 5px 0 15px 0;
+  box-sizing: border-box;
+}
+
+/* ---------- RESPONSIVE GRID image gallery (CSS Grid + Flexbox) ---------- */
+.gallery-section { margin-top: 30px; scroll-margin-top: 70px; }
+.gallery-section h2 { margin-top: 0; }
+.gallery-intro { margin: 0 0 12px 0; }
+.gallery {
+  list-style: none; margin: 0; padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.gallery li { margin: 0; }
+.gallery li.wide { grid-column: span 2; }
+.gallery-item {
+  display: flex; flex-direction: column;          /* Flexbox inside each grid cell */
+  width: 100%; height: 100%; padding: 0;
+  background: white; border: 0; border-radius: 6px; overflow: hidden;
+  cursor: pointer; font: inherit; color: inherit; text-align: left;
+}
+.gallery-item img {
+  display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover;
+  transition: transform 0.3s ease;
+}
+.gallery-item:hover img { transform: scale(1.05); }
+.gallery-item .cap { padding: 8px 10px; font-size: 14px; }
+.gallery-item:focus-visible { outline: 3px solid #1b6b5f; outline-offset: 2px; }
+
+/* ---------- Lightbox overlay ---------- */
+.lightbox {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0, 0, 0, 0.88);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  padding: 20px; box-sizing: border-box;
+}
+.lightbox.open { display: flex; }
+.lb-stage { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 1000px; }
+.lb-figure { flex: 1; margin: 0; text-align: center; color: white; min-width: 0; }
+.lb-figure img { max-width: 100%; max-height: 70vh; border-radius: 4px; }
+.lb-figure figcaption { margin-top: 10px; }
+.lb-btn {
+  background: #1b6b5f; color: white; border: 2px solid white; border-radius: 50%;
+  width: 44px; height: 44px; font-size: 22px; cursor: pointer; flex: none;
+}
+.lb-btn:hover { background: #10302b; }
+.lb-btn:focus-visible { outline: 3px solid #ffd54a; outline-offset: 2px; }
+.lb-close { position: absolute; top: 15px; right: 15px; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .gallery-item img { transition: none; }
+}
+
+/* ---------- FIXED back-to-top button ---------- */
+.back-top {
+  position: fixed; right: 20px; bottom: 20px; z-index: 50;
+  background: #1b6b5f; color: white; text-decoration: none;
+  padding: 10px 14px; border-radius: 4px;
+}
+.back-top:hover { background: #10302b; }
+
+footer {
+  background-color: #10302b;
+  color: white;
+  text-align: center;
+  padding: 10px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 700px) {
+  nav { position: static; }
+  .content { position: static; }
+  .layout { flex-direction: column; }
+  .sidebar { position: static; flex: none; width: 100%; box-sizing: border-box; }
+  .quadrants { height: auto; background: none; }
+  .box { position: static; width: 100%; height: auto; padding: 0; margin-bottom: 15px; }
+  .box iframe, .box video { height: 280px; }
+  .center-badge { display: none; }
+  .banner-label { left: 10px; bottom: 10px; font-size: 14px; }
+}
+
+/* Gallery breakpoints: desktop 3 columns, tablet 2, mobile 1 */
+@media (max-width: 900px) {
+  .gallery { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+  .gallery { grid-template-columns: 1fr; }
+  .gallery li.wide { grid-column: auto; }
+  .lb-stage { gap: 6px; }
+  .lb-btn { width: 38px; height: 38px; }
+}
+
+/* ---------- PRACTICUM 8: extra media queries ---------- */
+
+/* Large desktops: wider layout, 4-column gallery, larger text */
+@media (min-width: 1400px) {
+  .layout { max-width: 1400px; }
+  .gallery { grid-template-columns: repeat(4, 1fr); }
+  .gallery li.wide { grid-column: span 2; }
+  body { font-size: 18px; }
+}
+
+/* Tablet range only: tighter sidebar and gaps */
+@media (min-width: 501px) and (max-width: 900px) {
+  .gallery { gap: 10px; }
+  .sidebar { flex-basis: 140px; }
+  .gallery-item img { aspect-ratio: 4 / 3; }
+}
+
+/* Mobile: smaller images, larger touch-friendly text */
+@media (max-width: 500px) {
+  .gallery-item img { aspect-ratio: 16 / 10; }
+  .gallery-item .cap { font-size: 16px; }
+  header h1 { font-size: 24px; }
+  .back-top { right: 10px; bottom: 10px; }
+}
+
+/* Mobile landscape / short screens: less vertical space used */
+@media (orientation: landscape) and (max-height: 500px) {
+  .banner { height: 140px; }
+  .lb-figure img { max-height: 55vh; }
+  .sidebar { position: static; }
+}
+
+/* Touch devices: bigger tap targets, no hover-only zoom */
+@media (hover: none) and (pointer: coarse) {
+  nav a, nav button { padding: 18px 20px; }
+  .sidebar a { padding: 10px 0; }
+  .gallery-item:hover img { transform: none; }
+  .lb-btn { width: 48px; height: 48px; }
+}
+
+/* Mouse/trackpad devices: keep hover zoom */
+@media (hover: hover) and (pointer: fine) {
+  .gallery-item:hover img { transform: scale(1.05); }
+}
+
+/* High-density (retina) screens: crisper borders */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .center-badge { border-width: 3px; }
+  .gallery-item { box-shadow: 0 0 0 0.5px rgba(16, 48, 43, 0.25); }
+}
+
+/* Dark theme: now switched by the toggle button (JS adds .dark to <body>;
+   the starting value follows the system setting) - PRACTICUM 10 */
+body.dark { background-color: #0b1a17; color: #e8f1ee; }
+body.dark header, body.dark .music, body.dark .sidebar, body.dark .quadrants,
+body.dark .gallery-item, body.dark .stat { background: #12302a; color: #e8f1ee; }
+body.dark header h1, body.dark .sidebar h3, body.dark .stat strong { color: #6fd3c0; }
+body.dark .sidebar a { color: #e8f1ee; }
+
+/* Print: hide interactive and media elements */
+@media print {
+  nav, .music, .sidebar, .back-top, .lightbox, .quadrants { display: none !important; }
+  body { background: white; color: black; }
+  .gallery { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ---------- PRACTICUM 9: CSS animations ---------- */
+
+/* 1. Text sliding across the browser window, repeating and jumping back to the start */
+.ticker { overflow: hidden; background: #1b6b5f; color: white; white-space: nowrap; padding: 10px 0; }
+.ticker-text {
+  display: inline-block;
+  padding-left: 100%;                       /* starts just outside the right edge */
+  animation-name: slide-across;
+  animation-duration: 15s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;      /* repeat */
+  animation-direction: normal;              /* normal = jumps back to start each loop */
+  animation-fill-mode: none;
+}
+.ticker:hover .ticker-text { animation-play-state: paused; }
+@keyframes slide-across {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+
+
+/* 4. Multimedia boxes: lift on hover (transition) */
+.box { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.box:hover { transform: translateY(-4px); box-shadow: 0 8px 18px rgba(16, 48, 43, 0.25); z-index: 3; }
+
+/* 6. Gallery items fade up one after another (staggered delay) */
+.gallery li { animation: fade-up 0.6s ease-out both; }
+.gallery li:nth-child(1) { animation-delay: 0.05s; }
+.gallery li:nth-child(2) { animation-delay: 0.15s; }
+.gallery li:nth-child(3) { animation-delay: 0.25s; }
+.gallery li:nth-child(4) { animation-delay: 0.35s; }
+.gallery li:nth-child(5) { animation-delay: 0.45s; }
+.gallery li:nth-child(6) { animation-delay: 0.55s; }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 7. Lightbox fades in and image scales up */
+.lightbox.open { animation: fade-in 0.25s ease-out; }
+.lightbox.open .lb-figure img { animation: zoom-in 0.3s ease-out; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes zoom-in { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* 8. Buttons: colour + scale feedback; Apply Now gently attracts attention */
+nav a, nav button, .back-top, form button { transition: background-color 0.25s ease, transform 0.2s ease; }
+nav a:active, form button:active, .back-top:active { transform: scale(0.95); }
+
+/* 9. Dropdown menu fades in */
+.dropdown:hover .content, .dropdown:focus-within .content { animation: fade-in 0.2s ease-out; }
+
+/* 10. Form fields: smooth focus highlight */
+.form-section input, .form-section select, .form-section textarea { transition: box-shadow 0.25s ease, border-color 0.25s ease; }
+.form-section input:focus, .form-section select:focus, .form-section textarea:focus { outline: none; box-shadow: 0 0 0 3px rgba(27, 107, 95, 0.45); }
+
+
+/* ---------- MORE ANIMATIONS ---------- */
+
+/* B. Scroll progress bar (fixed at the very top) */
+.progress { position: fixed; top: 0; left: 0; height: 4px; width: 0; background: #ffd54a; z-index: 300; }
+
+/* H. Sidebar links slide right on hover */
+.sidebar a { transition: transform 0.25s ease, color 0.25s ease; }
+.sidebar a:hover { transform: translateX(6px); }
+
+/* I. Nav underline grows from the centre */
+nav > a, .dropdown > button { position: relative; }
+nav > a::after, .dropdown > button::after {
+  content: ""; position: absolute; left: 50%; bottom: 6px; width: 0; height: 2px;
+  background: #ffd54a; transition: width 0.3s ease, left 0.3s ease;
+}
+nav > a:hover::after, .dropdown > button:hover::after { width: 60%; left: 20%; }
+
+/* J. Music box: equaliser bars that bounce */
+.eq { display: inline-flex; align-items: flex-end; gap: 3px; height: 20px; margin-left: 8px; vertical-align: middle; }
+.eq span { width: 4px; background: #1b6b5f; animation: eq 0.9s ease-in-out infinite; }
+.eq span:nth-child(2) { animation-delay: 0.2s; }
+.eq span:nth-child(3) { animation-delay: 0.4s; }
+.eq span:nth-child(4) { animation-delay: 0.1s; }
+@keyframes eq { 0%, 100% { height: 4px; } 50% { height: 20px; } }
+.music.paused .eq span { animation-play-state: paused; }
+.music.paused .eq span:nth-child(1) { height: 8px; }
+.music.paused .eq span:nth-child(2) { height: 14px; }
+.music.paused .eq span:nth-child(3) { height: 10px; }
+.music.paused .eq span:nth-child(4) { height: 16px; }
+
+/* K. Form: shake invalid fields, button spinner on submit */
+.form-section input:user-invalid { animation: shake 0.4s; border-color: #c0392b; }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+form button { padding: 10px 22px; background: #1b6b5f; color: white; border: 0; border-radius: 4px; cursor: pointer; }
+
+
+/* ======================= REFINED ANIMATIONS ======================= */
+
+/* 1. Header title: slow flowing gradient text + subtitle fade */
+header h1 {
+  background: linear-gradient(90deg, #1b6b5f, #2e8b57, #3a7d8c, #1b6b5f);
+  background-size: 300% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: flow 8s linear infinite;
+}
+@keyframes flow { to { background-position: 300% 0; } }
+header p { animation: blur-in 1.2s ease-out 0.2s both; }
+@keyframes blur-in { from { opacity: 0; filter: blur(8px); letter-spacing: 6px; } to { opacity: 1; filter: blur(0); } }
+
+/* 3. Impact counters (numbers count up in JS, cards rise in) */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 95%; max-width: 1200px; margin: 20px auto 0; }
+.stat { background: white; border-radius: 6px; padding: 16px; text-align: center; border-bottom: 4px solid #1b6b5f; }
+.stat strong { display: block; font-size: 30px; color: #1b6b5f; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 14px; }
+.stats-note { width: 95%; max-width: 1200px; margin: 4px auto 0; font-size: 12px; opacity: 0.7; }
+
+/* 4. Scroll reveal with different directions (uses translate so hover transforms still work) */
+.reveal { opacity: 0; translate: 0 40px; transition: opacity 0.7s ease, translate 0.7s cubic-bezier(0.22, 1, 0.36, 1); transition-delay: var(--d, 0s); }
+.reveal.from-left  { translate: -50px 0; }
+.reveal.from-right { translate: 50px 0; }
+.reveal.visible { opacity: 1; translate: 0 0; }
+
+/* 5. Gallery: image wipes in, then hover zooms image and slides the caption over it */
+.gallery li { animation: none; }
+.gallery-item { position: relative; }
+.gallery li.reveal { opacity: 1; translate: none; transition: none; }
+.gallery li.reveal .gallery-item { clip-path: inset(0 100% 0 0); transition: clip-path 0.8s cubic-bezier(0.22, 1, 0.36, 1); transition-delay: var(--d, 0s); }
+.gallery li.reveal.visible .gallery-item { clip-path: inset(0 0 0 0); }
+.gallery-item:hover img { transform: scale(1.08); }
+.gallery-item .cap {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 28px 12px 10px; color: white; font-weight: bold;
+  background: linear-gradient(transparent, rgba(16, 48, 43, 0.9));
+  translate: 0 100%; transition: translate 0.35s ease;
+}
+.gallery-item:hover .cap, .gallery-item:focus-visible .cap { translate: 0 0; }
+@media (hover: none) { .gallery-item .cap { translate: 0 0; } }
+
+/* 6. Dropdown items slide down one by one */
+.dropdown:hover .content a, .dropdown:focus-within .content a { animation: item-in 0.3s ease-out both; }
+.dropdown .content a:nth-child(2) { animation-delay: 0.05s !important; }
+.dropdown .content a:nth-child(3) { animation-delay: 0.1s !important; }
+.dropdown .content a:nth-child(4) { animation-delay: 0.15s !important; }
+@keyframes item-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* 7. Centre badge: slowly rotating dashed ring */
+.center-badge { animation: none; }
+.center-badge::before {
+  content: ""; position: absolute; inset: -14px; border: 2px dashed #1b6b5f; border-radius: 50%;
+  animation: spin 14s linear infinite;
+}
+
+/* 8. Button ripple (JS adds the span) and "shine" sweep on Apply Now */
+nav a, nav button, form button { position: relative; overflow: hidden; }
+.ripple { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.45); transform: scale(0); animation: ripple 0.6s ease-out forwards; pointer-events: none; }
+@keyframes ripple { to { transform: scale(4); opacity: 0; } }
+.apply::before {
+  content: ""; position: absolute; top: 0; left: -80%; width: 50%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.4), transparent); transform: skewX(-20deg);
+}
+.apply:hover::before { left: 130%; transition: left 0.7s ease; }
+
+/* 9. Back-to-top slides in only after scrolling */
+.back-top { opacity: 0; translate: 0 30px; pointer-events: none; transition: opacity 0.3s ease, translate 0.3s ease, background-color 0.25s ease; }
+.back-top.show { opacity: 1; translate: 0 0; pointer-events: auto; }
+
+/* 10. Lightbox: image slides in from the direction you navigate */
+.lb-figure img.slide-next { animation: slide-next 0.35s ease-out; }
+.lb-figure img.slide-prev { animation: slide-prev 0.35s ease-out; }
+@keyframes slide-next { from { opacity: 0; transform: translateX(60px); } to { opacity: 1; transform: none; } }
+@keyframes slide-prev { from { opacity: 0; transform: translateX(-60px); } to { opacity: 1; transform: none; } }
+
+/* 11. Submit success: animated tick draws itself */
+.tick { display: inline-block; width: 16px; height: 16px; margin-left: 8px; vertical-align: -2px; }
+.tick path { stroke: white; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw 0.5s ease-out 0.1s forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+form button.sending { opacity: 0.7; }
+
+@media (max-width: 700px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+
+/* Wide gallery tiles: keep row height equal to neighbours */
+.gallery li.wide .gallery-item img { aspect-ratio: 3 / 1; }
+@media (max-width: 500px) { .gallery li.wide .gallery-item img { aspect-ratio: 16 / 10; } }
+@media (min-width: 501px) and (max-width: 900px) { .gallery li.wide .gallery-item img { aspect-ratio: 2 / 1; } }
+
+/* ---------- PRACTICUM 10: DOM interaction styles ---------- */
+
+/* Live form validation messages */
+.field-msg { display: block; min-height: 1.2em; margin: -10px 0 12px; font-size: 13px; }
+.field-msg.error { color: #c0392b; }
+.field-msg.ok { color: #2e8b57; }
+.form-section input.invalid, .form-section textarea.invalid { border: 2px solid #c0392b; }
+.form-section input.valid, .form-section textarea.valid { border: 2px solid #2e8b57; }
+.counter { display: block; text-align: right; font-size: 12px; margin: -10px 0 12px; opacity: 0.8; }
+.counter.limit { color: #c0392b; font-weight: bold; opacity: 1; }
+.form-status { padding: 10px 12px; border-radius: 4px; margin-bottom: 12px; }
+.form-status.error { background: #fdecea; color: #7a1f16; }
+.form-status.success { background: #e3f4ea; color: #14532d; }
+
+/* Role description that changes with the selected role */
+.role-info { margin: -6px 0 15px; padding: 8px 10px; border-left: 4px solid #1b6b5f; background: rgba(27, 107, 95, 0.1); font-size: 14px; }
+
+/* Gallery filter buttons */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+.filter-btn {
+  padding: 8px 16px; border: 2px solid #1b6b5f; border-radius: 20px;
+  background: white; color: #1b6b5f; font: inherit; cursor: pointer;
+}
+.filter-btn:hover { background: rgba(27, 107, 95, 0.12); }
+.filter-btn.active { background: #1b6b5f; color: white; }
+.filter-btn:focus-visible { outline: 3px solid #ffd54a; outline-offset: 2px; }
+
+/* Applications received (list built with createElement) */
+.summary { max-width: 500px; margin: 0 auto 30px; padding: 12px 16px; background: white; border-radius: 6px; border-left: 4px solid #1b6b5f; }
+.summary h3 { margin: 0 0 8px; color: #1b6b5f; }
+.summary ul { list-style: none; margin: 0; padding: 0; }
+.summary li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid rgba(16, 48, 43, 0.15); }
+.summary .remove { background: none; border: 1px solid #c0392b; color: #c0392b; border-radius: 4px; cursor: pointer; padding: 2px 8px; }
+body.dark .summary, body.dark .filter-btn { background: #12302a; color: #e8f1ee; }
+body.dark .filter-btn.active { background: #1b6b5f; color: white; }
+body.dark .summary h3 { color: #6fd3c0; }
+body.dark .form-status.error { background: #4a1d19; color: #fadbd8; }
+body.dark .form-status.success { background: #14391f; color: #d4efdf; }
+
+
+/* ---------- PRACTICUM 11: Order form with validation and bill ---------- */
+.order-items { margin: 0 0 15px; }
+.order-row { display: grid; grid-template-columns: 1fr auto 90px; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid rgba(16, 48, 43, 0.15); }
+.order-row .item-name { font-weight: bold; }
+.order-row .item-price { display: block; font-size: 13px; font-weight: normal; opacity: 0.8; }
+.qty { display: inline-flex; align-items: center; gap: 4px; }
+.qty input { width: 56px !important; margin: 0 !important; text-align: center; }
+.qty .step { width: 32px; height: 32px; padding: 0; border: 0; border-radius: 4px; background: #1b6b5f; color: white; font-size: 18px; cursor: pointer; }
+.qty .step:hover { background: #10302b; }
+.qty .step:focus-visible { outline: 3px solid #ffd54a; outline-offset: 2px; }
+.line-total { text-align: right; font-variant-numeric: tabular-nums; }
+.order-msg { display: block; min-height: 1.2em; margin: 0 0 8px; font-size: 13px; text-align: right; }
+.order-msg.error { color: #c0392b; }
+.order-msg.ok { color: #2e8b57; }
+.order-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.order-actions .secondary { background: white !important; color: #1b6b5f !important; border: 2px solid #1b6b5f !important; }
+.bill { max-width: 500px; margin: 0 auto 30px; padding: 14px 16px; background: white; border-radius: 6px; border-left: 4px solid #1b6b5f; animation: fade-in 0.35s ease-out; }
+.bill h3 { margin: 0 0 4px; color: #1b6b5f; }
+.bill .meta { margin: 0 0 10px; font-size: 14px; opacity: 0.85; }
+.bill table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.bill th, .bill td { padding: 6px 4px; text-align: left; border-bottom: 1px solid rgba(16, 48, 43, 0.15); }
+.bill th:nth-child(n+2), .bill td:nth-child(n+2) { text-align: right; }
+.bill tfoot td { border-bottom: 0; }
+.bill tfoot tr.grand td { font-weight: bold; font-size: 16px; border-top: 2px solid #1b6b5f; }
+body.dark .bill { background: #12302a; color: #e8f1ee; }
+body.dark .bill h3 { color: #6fd3c0; }
+body.dark .order-actions .secondary { background: #12302a !important; color: #6fd3c0 !important; border-color: #6fd3c0 !important; }
+@media (max-width: 500px) { .order-row { grid-template-columns: 1fr auto; } .line-total { grid-column: 1 / -1; text-align: left; } }
+
+/* ---------- PRACTICUM 12: endpoint data management (Fetch API) ---------- */
+.endpoint { max-width: 700px; }
+.endpoint h2 { margin-top: 0; }
+.ep-request { margin: 0 0 10px; font-family: monospace; font-size: 13px; word-break: break-all; opacity: 0.9; }
+.ep-state { padding: 12px 14px; margin: 0 0 10px; border-radius: 6px; border-left: 4px solid; }
+.ep-state.loading { background: rgba(27, 107, 95, 0.1); border-color: #1b6b5f; }
+.ep-state.empty { background: #fff8e1; border-color: #f0ad00; color: #5c4400; }
+.ep-state.error { background: #fdecea; border-color: #c0392b; color: #7a1f16; }
+.ep-state button { margin-top: 8px; }
+.ep-spinner { display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px; border: 2px solid #1b6b5f; border-top-color: transparent; border-radius: 50%; animation: ep-spin 0.8s linear infinite; }
+@keyframes ep-spin { to { transform: rotate(360deg); } }
+.ep-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ep-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; background: white; border-radius: 6px; border-left: 4px solid #1b6b5f; }
+.ep-list .ep-meta { display: block; font-size: 13px; opacity: 0.85; }
+.ep-list .remove { background: none; border: 1px solid #c0392b; color: #c0392b; border-radius: 4px; cursor: pointer; padding: 4px 10px; }
+.ep-list .remove:disabled { opacity: 0.5; cursor: wait; }
+body.dark .ep-list li { background: #12302a; color: #e8f1ee; }
+body.dark .ep-state.empty { background: #3d3210; color: #fdeeb5; }
+body.dark .ep-state.error { background: #4a1d19; color: #fadbd8; }
+body.dark .endpoint h2 { color: #e8f1ee; }
+
+/* ---------- PRACTICUM 13: task manager ---------- */
+.taskmgr { max-width: 700px; }
+.taskmgr h2 { margin-top: 0; }
+.task-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+.task-filter { padding: 8px 16px; border: 2px solid #1b6b5f; border-radius: 20px; background: white; color: #1b6b5f; font: inherit; cursor: pointer; }
+.task-filter.active { background: #1b6b5f; color: white; }
+.task-filter:focus-visible { outline: 3px solid #ffd54a; outline-offset: 2px; }
+.task-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.task-list li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 10px 14px; background: white; border-radius: 6px; border-left: 4px solid #1b6b5f; animation: fade-in 0.3s ease-out; }
+.task-list li.p-high { border-left-color: #c0392b; }
+.task-list li.p-medium { border-left-color: #f0ad00; }
+.task-list li.p-low { border-left-color: #2e8b57; }
+.task-list input[type="checkbox"] { width: 20px; height: 20px; margin: 0; }
+.task-list .t-title { word-break: break-word; }
+.task-list li.done .t-title { text-decoration: line-through; opacity: 0.6; }
+.task-list .t-pri { display: block; font-size: 12px; opacity: 0.8; }
+.task-list .t-actions { display: flex; gap: 6px; }
+.task-list .t-actions button { background: none; border: 1px solid #1b6b5f; color: #1b6b5f; border-radius: 4px; cursor: pointer; padding: 4px 10px; }
+.task-list .t-actions .remove { border-color: #c0392b; color: #c0392b; }
+.task-empty { padding: 12px 14px; border-radius: 6px; border-left: 4px solid #f0ad00; background: #fff8e1; color: #5c4400; }
+body.dark .task-list li, body.dark .task-filter { background: #12302a; color: #e8f1ee; }
+body.dark .task-filter.active { background: #1b6b5f; color: white; }
+body.dark .task-list .t-actions button:not(.remove) { border-color: #6fd3c0; color: #6fd3c0; }
+body.dark .task-empty { background: #3d3210; color: #fdeeb5; }
+body.dark .taskmgr h2 { color: #e8f1ee; }
+
+/* Accessibility: respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .ticker-text { padding-left: 0; white-space: normal; }
+  .reveal { opacity: 1; translate: none; clip-path: none; }
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<header id="top">
+  <h1>Ecosphere</h1>
+  <p>Sustainable Supply Chain and Logistics</p>
+</header>
+
+<!-- Sliding text (CSS keyframe animation) -->
+<div class="ticker" aria-label="Announcement"><span class="ticker-text">Welcome to Ecosphere &#8211; Sustainable Supply Chain and Logistics &#8211; Now hiring: Supply Chain Analyst, Fleet Sustainability Coordinator, Warehouse Operations</span></div>
+
+<!-- Dropdown menu linked to the multimedia elements -->
+<nav>
+  <a href="#top-music">Audio</a>
+
+  <div class="dropdown">
+    <button type="button">Media &#8964;</button>
+    <div class="content">
+      <a href="#pdf">PDF Document</a>
+      <a href="#youtube">YouTube Video</a>
+      <a href="#video">Video File</a>
+      <a href="#map">Location Map</a>
+    </div>
+  </div>
+
+  <div class="dropdown">
+    <button type="button">Careers &#8964;</button>
+    <div class="content">
+      <a href="#application" data-role="Supply Chain Analyst">Supply Chain Analyst</a>
+      <a href="#application" data-role="Fleet Sustainability Coordinator">Fleet Sustainability Coordinator</a>
+      <a href="#application" data-role="Warehouse Operations">Warehouse Operations</a>
+    </div>
+  </div>
+
+  <a href="#gallery">Gallery</a>
+
+  <a href="#application" class="apply">Apply Now</a>
+  <a href="#order">Order</a>
+  <a href="#endpoint">Live Data</a>
+  <a href="#tasks">Tasks</a>
+
+  <!-- PRACTICUM 10: theme toggle (click event changes the page theme) -->
+  <button type="button" id="theme-toggle" aria-pressed="false">&#9790; Dark</button>
+</nav>
+
+<div class="music" id="top-music">
+  <p>Play Music <span class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></span></p>
+  <audio controls>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+</div>
+
+<div class="hero">
+  <img class="banner"
+       src="https://placehold.co/1200x300/1b6b5f/ffffff?text=Ecosphere+-+Sustainable+Logistics"
+       alt="Ecosphere banner">
+  <span class="banner-label">Greener Logistics, Cleaner Future</span>
+</div>
+
+<section class="stats" aria-label="Impact figures">
+  <div class="stat reveal" style="--d:0s"><strong data-count="42" data-suffix="%">0</strong><span>Lower fleet emissions</span></div>
+  <div class="stat reveal" style="--d:.1s"><strong data-count="18" data-suffix="">0</strong><span>Solar-powered warehouses</span></div>
+  <div class="stat reveal" style="--d:.2s"><strong data-count="1200" data-suffix="+">0</strong><span>Electric deliveries daily</span></div>
+  <div class="stat reveal" style="--d:.3s"><strong data-count="65" data-suffix="%">0</strong><span>Freight moved by rail</span></div>
+</section>
+<p class="stats-note">Illustrative figures for this practicum page.</p>
+
+<div class="layout">
+  <aside class="sidebar">
+    <h3>Quick Links</h3>
+    <a href="#top-music">Audio</a>
+    <a href="#pdf">PDF Document</a>
+    <a href="#youtube">YouTube Video</a>
+    <a href="#video">Video File</a>
+    <a href="#map">Location Map</a>
+    <a href="#gallery">Gallery</a>
+    <a href="#application">Apply Now</a>
+    <a href="#order">Order Form</a>
+    <a href="#endpoint">Live Data</a>
+    <a href="#tasks">Task Manager</a>
+  </aside>
+
+  <main>
+    <div class="media reveal" id="media">
+      <h2>Media Elements</h2>
+
+      <div class="quadrants">
+        <div class="box" id="pdf">
+          <h3>PDF Document</h3>
+          <iframe src="Ecosphere.pdf" title="Ecosphere PDF"></iframe>
+        </div>
+
+        <div class="box" id="youtube">
+          <h3>YouTube Video</h3>
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/LgnXizpZ2GY?si=__FajC4UhPRYcaBk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+
+        <div class="box" id="video">
+          <h3>Video File</h3>
+          <video controls>
+            <source src="ecosphere.mp4" type="video/mp4">
+            <source src="ecosphere.ogg" type="video/ogg">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+
+        <div class="box" id="map">
+          <h3>Location Map</h3>
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3917.3598830116985!2d76.74148607536158!3d10.936163989222454!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba866bd6aaaaaab%3A0xc650b8a75e7b51f0!2sKarunya%20Institute%20of%20Technology%20and%20Sciences%20(Deemed%20University)!5e0!3m2!1sen!2sin!4v1790841741287!5m2!1sen!2sin"
+                  title="Ecosphere location" allowfullscreen loading="lazy"></iframe>
+        </div>
+
+        <div class="center-badge">Ecosphere Media</div>
+      </div>
+    </div>
+
+    <section class="gallery-section reveal" id="gallery" aria-labelledby="gallery-title">
+      <h2 id="gallery-title">Image Gallery</h2>
+      <p class="gallery-intro">Select an image to view it larger. Use the arrow keys to browse and Esc to close.</p>
+
+      <!-- PRACTICUM 10: filter buttons (click events show/hide gallery items) -->
+      <div class="filters" role="group" aria-label="Filter gallery images">
+        <button type="button" class="filter-btn active" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" class="filter-btn" data-filter="transport" aria-pressed="false">Transport</button>
+        <button type="button" class="filter-btn" data-filter="facilities" aria-pressed="false">Facilities</button>
+        <button type="button" class="filter-btn" data-filter="technology" aria-pressed="false">Technology</button>
+      </div>
+      <p class="gallery-intro" id="gallery-count" aria-live="polite">Showing 6 of 6 images</p>
+
+      <ul class="gallery">
+        <li class="wide reveal" data-category="transport" style="--d:0.0s">
+          <button type="button" class="gallery-item" data-full="images/electric-fleet-1200.jpg" data-caption="Electric Fleet">
+            <img src="images/electric-fleet-800.jpg" srcset="images/electric-fleet-400.jpg 400w, images/electric-fleet-800.jpg 800w, images/electric-fleet-1200.jpg 1200w" sizes="(max-width: 500px) 100vw, (max-width: 900px) 50vw, 33vw" width="600" height="400" loading="lazy" decoding="async" alt="Electric Fleet - Ecosphere sustainable logistics">
+            <span class="cap">Electric Fleet</span>
+          </button>
+        </li>
+        <li class="reveal" data-category="facilities" style="--d:0.1s">
+          <button type="button" class="gallery-item" data-full="images/solar-warehouse-1200.jpg" data-caption="Solar Warehouse">
+            <img src="images/solar-warehouse-800.jpg" srcset="images/solar-warehouse-400.jpg 400w, images/solar-warehouse-800.jpg 800w, images/solar-warehouse-1200.jpg 1200w" sizes="(max-width: 500px) 100vw, (max-width: 900px) 50vw, 33vw" width="600" height="400" loading="lazy" decoding="async" alt="Solar Warehouse - Ecosphere sustainable logistics">
+            <span class="cap">Solar Warehouse</span>
+          </button>
+        </li>
+        <li class="reveal" data-category="transport" style="--d:0.2s">
+          <button type="button" class="gallery-item" data-full="images/rail-freight-1200.jpg" data-caption="Rail Freight">
+            <img src="images/rail-freight-800.jpg" srcset="images/rail-freight-400.jpg 400w, images/rail-freight-800.jpg 800w, images/rail-freight-1200.jpg 1200w" sizes="(max-width: 500px) 100vw, (max-width: 900px) 50vw, 33vw" width="600" height="400" loading="lazy" decoding="async" alt="Rail Freight - Ecosphere sustainable logistics">
+            <span class="cap">Rail Freight</span>
+          </button>
+        </li>
+        <li class="reveal" data-category="facilities" style="--d:0.3s">
+          <button type="button" class="gallery-item" data-full="images/green-port-1200.jpg" data-caption="Green Port">
+            <img src="images/green-port-800.jpg" srcset="images/green-port-400.jpg 400w, images/green-port-800.jpg 800w, images/green-port-1200.jpg 1200w" sizes="(max-width: 500px) 100vw, (max-width: 900px) 50vw, 33vw" width="600" height="400" loading="lazy" decoding="async" alt="Green Port - Ecosphere sustainable logistics">
+            <span class="cap">Green Port</span>
+          </button>
+        </li>
+        <li class="reveal" data-category="technology" style="--d:0.4s">
+          <button type="button" class="gallery-item" data-full="images/route-optimization-1200.jpg" data-caption="Route Optimization">
+            <img src="images/route-optimization-800.jpg" srcset="images/route-optimization-400.jpg 400w, images/route-optimization-800.jpg 800w, images/route-optimization-1200.jpg 1200w" sizes="(max-width: 500px) 100vw, (max-width: 900px) 50vw, 33vw" width="600" height="400" loading="lazy" decoding="async" alt="Route Optimization - Ecosphere sustainable logistics">
+            <span class="cap">Route Optimization</span>
+          </button>
+        </li>
+        <li class="wide reveal" data-category="facilities" style="--d:0.5s">
+          <button type="button" class="gallery-item" data-full="images/recycling-hub-1200.jpg" data-caption="Recycling Hub">
+            <img src="images/recycling-hub-800.jpg" srcset="images/recycling-hub-400.jpg 400w, images/recycling-hub-800.jpg 800w, images/recycling-hub-1200.jpg 1200w" sizes="(max-width: 500px) 100vw, (max-width: 900px) 50vw, 33vw" width="600" height="400" loading="lazy" decoding="async" alt="Recycling Hub - Ecosphere sustainable logistics">
+            <span class="cap">Recycling Hub</span>
+          </button>
+        </li>
+      </ul>
+    </section>
+
+    <div class="form-section reveal" id="application">
+      <h2>Application Form</h2>
+      <!-- PRACTICUM 10: novalidate = our own live validation messages replace the browser pop-ups -->
+      <form action="#" method="post" id="application-form" novalidate>
+        <div class="form-status" id="form-status" role="status" aria-live="polite" hidden></div>
+
+        <label for="fullname">Full Name</label>
+        <input type="text" id="fullname" name="fullname" required autocomplete="name" aria-describedby="fullname-msg">
+        <small class="field-msg" id="fullname-msg"></small>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required autocomplete="email" aria-describedby="email-msg">
+        <small class="field-msg" id="email-msg"></small>
+
+        <label for="role">Role</label>
+        <select id="role" name="role" aria-describedby="role-info">
+          <option>Supply Chain Analyst</option>
+          <option>Fleet Sustainability Coordinator</option>
+          <option>Warehouse Operations</option>
+        </select>
+        <p class="role-info" id="role-info" aria-live="polite"></p>
+
+        <label for="reason">Why do you want to join Ecosphere?</label>
+        <textarea id="reason" name="reason" rows="4" maxlength="250" required aria-describedby="reason-msg"></textarea>
+        <small class="field-msg" id="reason-msg"></small>
+        <small class="counter" id="reason-count">0 / 200</small>
+
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+
+
+    <!-- PRACTICUM 11: order form (JavaScript validation + bill calculation) -->
+    <div class="form-section reveal" id="order">
+      <h2>Order Form</h2>
+      <p>Book Ecosphere green logistics services. Choose quantities, then calculate your bill.</p>
+      <form id="order-form" novalidate>
+        <div class="form-status" id="order-status" role="status" aria-live="polite" hidden></div>
+
+        <label for="o-name">Customer Name</label>
+        <input type="text" id="o-name" required autocomplete="name" aria-describedby="o-name-msg">
+        <small class="field-msg" id="o-name-msg"></small>
+
+        <label for="o-phone">Phone (10-digit mobile)</label>
+        <input type="tel" id="o-phone" required inputmode="numeric" maxlength="10" autocomplete="tel-national" aria-describedby="o-phone-msg">
+        <small class="field-msg" id="o-phone-msg"></small>
+
+        <label for="o-date">Delivery Date</label>
+        <input type="date" id="o-date" required aria-describedby="o-date-msg">
+        <small class="field-msg" id="o-date-msg"></small>
+
+        <fieldset class="order-items" style="border:0;padding:0;margin:0 0 15px">
+          <legend><strong>Services</strong> (quantity 0&ndash;99)</legend>
+          <div class="order-row" data-price="1200" data-name="Electric Van Delivery">
+            <label for="q-van" class="item-name">Electric Van Delivery<span class="item-price">&#8377;1,200 per trip</span></label>
+            <span class="qty"><button type="button" class="step" data-dir="-1" aria-label="Decrease Electric Van Delivery">&minus;</button><input type="text" id="q-van" inputmode="numeric" value="0" maxlength="3"><button type="button" class="step" data-dir="1" aria-label="Increase Electric Van Delivery">+</button></span>
+            <span class="line-total" aria-live="polite">&#8377;0</span>
+          </div>
+          <div class="order-row" data-price="450" data-name="Solar Warehouse Storage">
+            <label for="q-store" class="item-name">Solar Warehouse Storage<span class="item-price">&#8377;450 per pallet</span></label>
+            <span class="qty"><button type="button" class="step" data-dir="-1" aria-label="Decrease Solar Warehouse Storage">&minus;</button><input type="text" id="q-store" inputmode="numeric" value="0" maxlength="3"><button type="button" class="step" data-dir="1" aria-label="Increase Solar Warehouse Storage">+</button></span>
+            <span class="line-total" aria-live="polite">&#8377;0</span>
+          </div>
+          <div class="order-row" data-price="800" data-name="Rail Freight">
+            <label for="q-rail" class="item-name">Rail Freight<span class="item-price">&#8377;800 per tonne</span></label>
+            <span class="qty"><button type="button" class="step" data-dir="-1" aria-label="Decrease Rail Freight">&minus;</button><input type="text" id="q-rail" inputmode="numeric" value="0" maxlength="3"><button type="button" class="step" data-dir="1" aria-label="Increase Rail Freight">+</button></span>
+            <span class="line-total" aria-live="polite">&#8377;0</span>
+          </div>
+          <div class="order-row" data-price="150" data-name="Recycled Packaging Kit">
+            <label for="q-pack" class="item-name">Recycled Packaging Kit<span class="item-price">&#8377;150 per kit</span></label>
+            <span class="qty"><button type="button" class="step" data-dir="-1" aria-label="Decrease Recycled Packaging Kit">&minus;</button><input type="text" id="q-pack" inputmode="numeric" value="0" maxlength="3"><button type="button" class="step" data-dir="1" aria-label="Increase Recycled Packaging Kit">+</button></span>
+            <span class="line-total" aria-live="polite">&#8377;0</span>
+          </div>
+          <small class="order-msg" id="order-items-msg"></small>
+        </fieldset>
+
+        <div class="order-actions">
+          <button type="submit">Calculate Bill</button>
+          <button type="reset" class="secondary">Clear</button>
+        </div>
+      </form>
+    </div>
+
+    <section class="bill" id="bill" aria-live="polite" hidden></section>
+
+    <!-- PRACTICUM 10: applications list, rows are created and removed by JavaScript -->
+    <section class="summary" id="summary" aria-live="polite" hidden>
+      <h3>Applications received</h3>
+      <ul id="summary-list"></ul>
+    </section>
+
+    <!-- PRACTICUM 12: endpoint data management (Fetch API, loading / empty / error states) -->
+    <div class="form-section endpoint reveal" id="endpoint">
+      <h2>Partner Directory (Live Endpoint Data)</h2>
+      <p class="gallery-intro">Loads partner records from a REST endpoint with the Fetch API and updates this section without reloading the page. Try each endpoint to see the success, empty and error states.</p>
+      <form id="endpoint-form" novalidate>
+        <label for="ep-source">Endpoint</label>
+        <select id="ep-source">
+          <option value="/users">GET /users (all partners)</option>
+          <option value="/users?id=9999">GET /users?id=9999 (valid, but no records)</option>
+          <option value="/partners">GET /partners (404 not found)</option>
+          <option value="https://jsonplaceholder.invalid/users">Unreachable server (network failure)</option>
+        </select>
+
+        <label for="ep-search">Filter by name (optional)</label>
+        <input type="text" id="ep-search" maxlength="30" autocomplete="off" aria-describedby="ep-search-msg">
+        <small class="field-msg" id="ep-search-msg"></small>
+
+        <label for="ep-limit">Records to show (1&ndash;10)</label>
+        <input type="text" id="ep-limit" value="5" inputmode="numeric" maxlength="2" aria-describedby="ep-limit-msg">
+        <small class="field-msg" id="ep-limit-msg"></small>
+
+        <div class="order-actions">
+          <button type="submit" id="ep-load">Load Data</button>
+          <button type="button" class="secondary" id="ep-clear">Clear</button>
+        </div>
+      </form>
+      <p class="ep-request" id="ep-request" hidden></p>
+      <div id="ep-output" aria-live="polite" aria-busy="false"></div>
+    </div>
+
+    <!-- PRACTICUM 13: task manager (add, edit, complete, delete, localStorage persistence) -->
+    <div class="form-section taskmgr reveal" id="tasks">
+      <h2>Ecosphere Task Manager</h2>
+      <p class="gallery-intro">Track day-to-day logistics work such as fleet checks, warehouse audits and freight bookings. Tasks are saved in this browser and restored when you reload the page.</p>
+      <form id="task-form" novalidate>
+        <div class="form-status" id="task-status" role="status" aria-live="polite" hidden></div>
+
+        <label for="task-title">Task</label>
+        <input type="text" id="task-title" maxlength="80" autocomplete="off" placeholder="e.g. Inspect solar warehouse batteries" aria-describedby="task-title-msg">
+        <small class="field-msg" id="task-title-msg"></small>
+
+        <label for="task-priority">Priority</label>
+        <select id="task-priority">
+          <option value="high">High</option>
+          <option value="medium" selected>Medium</option>
+          <option value="low">Low</option>
+        </select>
+
+        <div class="order-actions">
+          <button type="submit" id="task-submit">Add Task</button>
+          <button type="button" class="secondary" id="task-cancel" hidden>Cancel edit</button>
+        </div>
+      </form>
+
+      <div class="task-filters" role="group" aria-label="Filter tasks" style="margin-top:18px">
+        <button type="button" class="task-filter active" data-tfilter="all" aria-pressed="true">All</button>
+        <button type="button" class="task-filter" data-tfilter="active" aria-pressed="false">Active</button>
+        <button type="button" class="task-filter" data-tfilter="done" aria-pressed="false">Completed</button>
+      </div>
+      <p class="gallery-intro" id="task-count" aria-live="polite"></p>
+      <ul class="task-list" id="task-list"></ul>
+      <div class="order-actions"><button type="button" class="secondary" id="task-clear-done">Clear completed</button></div>
+    </div>
+  </main>
+</div>
+
+<!-- Lightbox for the gallery -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer" hidden>
+  <button type="button" class="lb-btn lb-close" id="lb-close" aria-label="Close image viewer">&times;</button>
+  <div class="lb-stage">
+    <button type="button" class="lb-btn" id="lb-prev" aria-label="Previous image">&#8249;</button>
+    <figure class="lb-figure">
+      <img id="lb-img" src="" alt="">
+      <figcaption id="lb-cap"></figcaption>
+    </figure>
+    <button type="button" class="lb-btn" id="lb-next" aria-label="Next image">&#8250;</button>
+  </div>
+</div>
+
+<a href="#top" class="back-top">&uarr; Top</a>
+
+<footer>
+  <p>&copy; 2026 Ecosphere</p>
+</footer>
+
+<script>
+/* ================= PRACTICUM 10: DOM elements ================= */
+
+/* 1. Role dropdown: selecting a role in Careers pre-selects it AND updates the description */
+var roleSelect = document.getElementById('role');
+var roleInfo = document.getElementById('role-info');
+var roleText = {
+  'Supply Chain Analyst': 'Analyse logistics data to cut cost and emissions across our network.',
+  'Fleet Sustainability Coordinator': 'Plan and track the move of our delivery fleet to electric vehicles.',
+  'Warehouse Operations': 'Run day-to-day operations in our solar-powered warehouses.'
+};
+function showRoleInfo() { roleInfo.textContent = roleText[roleSelect.value] || ''; }
+roleSelect.addEventListener('change', showRoleInfo);
+showRoleInfo();
+
+document.querySelectorAll('[data-role]').forEach(function (link) {
+  link.addEventListener('click', function () {
+    roleSelect.value = link.dataset.role;
+    roleSelect.dispatchEvent(new Event('change'));   // so the description updates too
+  });
+});
+
+/* 2. Theme toggle: class on <body> + saved choice (the only thing stored in the browser) */
+var themeBtn = document.getElementById('theme-toggle');
+function applyTheme(theme) {
+  var dark = theme === 'dark';
+  document.body.classList.toggle('dark', dark);
+  themeBtn.textContent = dark ? '\u2600 Light' : '\u263E Dark';
+  themeBtn.setAttribute('aria-pressed', String(dark));
+}
+var savedTheme = null;
+try { savedTheme = localStorage.getItem('ecosphere-theme'); } catch (err) { /* storage blocked */ }
+applyTheme(savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+themeBtn.addEventListener('click', function () {
+  var next = document.body.classList.contains('dark') ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('ecosphere-theme', next); } catch (err) { /* ignore */ }
+});
+
+/* 3. Gallery filter: show/hide list items with the hidden property */
+var filterBtns = document.querySelectorAll('.filter-btn');
+var galleryItems = document.querySelectorAll('.gallery li');
+var galleryCount = document.getElementById('gallery-count');
+filterBtns.forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var f = btn.dataset.filter, shown = 0;
+    galleryItems.forEach(function (li) {
+      li.hidden = !(f === 'all' || li.dataset.category === f);
+      if (!li.hidden) shown++;
+    });
+    filterBtns.forEach(function (b) {
+      var on = b === btn;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    galleryCount.textContent = 'Showing ' + shown + ' of ' + galleryItems.length + ' images';
+  });
+});
+
+/* 4. Live form validation (input / blur / submit events) */
+(function () {
+  var form = document.getElementById('application-form');
+  var status = document.getElementById('form-status');
+  var submitBtn = form.querySelector('button[type="submit"]');
+  var summary = document.getElementById('summary');
+  var list = document.getElementById('summary-list');
+  var count = document.getElementById('reason-count');
+  var MAX = 200;
+
+  var rules = {
+    fullname: function (v) {
+      v = v.trim();
+      if (!v) return 'Please enter your full name.';
+      if (v.length < 2) return 'Name must be at least 2 characters.';
+      if (!/^[\p{L}][\p{L} .'-]*$/u.test(v)) return 'Use letters, spaces, dots, apostrophes or hyphens only.';
+      return '';
+    },
+    email: function (v) {
+      v = v.trim();
+      if (!v) return 'Please enter your email address.';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return 'Enter a valid email, e.g. name@example.com.';
+      return '';
+    },
+    reason: function (v) {
+      v = v.trim();
+      if (!v) return 'Please tell us why you want to join.';
+      if (v.length < 10) return 'Please write at least 10 characters.';
+      if (v.length > MAX) return 'Keep it under ' + MAX + ' characters.';
+      return '';
+    }
+  };
+
+  function check(field) {
+    var msg = rules[field.id](field.value);
+    var out = document.getElementById(field.id + '-msg');
+    field.classList.toggle('invalid', !!msg);
+    field.classList.toggle('valid', !msg);
+    field.setAttribute('aria-invalid', String(!!msg));
+    out.textContent = msg || 'Looks good \u2713';
+    out.className = 'field-msg ' + (msg ? 'error' : 'ok');
+    return !msg;
+  }
+  function clearField(field) {
+    field.classList.remove('valid', 'invalid');
+    field.removeAttribute('aria-invalid');
+    var out = document.getElementById(field.id + '-msg');
+    out.textContent = ''; out.className = 'field-msg';
+  }
+  function updateCounter() {
+    var n = document.getElementById('reason').value.length;
+    count.textContent = n + ' / ' + MAX;
+    count.classList.toggle('limit', n > MAX);
+  }
+  function setStatus(type, text) {
+    status.hidden = false;
+    status.className = 'form-status ' + type;
+    status.textContent = text;
+  }
+
+  var fields = Object.keys(rules).map(function (id) { return document.getElementById(id); });
+  fields.forEach(function (f) {
+    f.addEventListener('blur', function () { check(f); });                       // validate when leaving the field
+    f.addEventListener('input', function () {                                    // re-check live while typing
+      if (f.classList.contains('valid') || f.classList.contains('invalid')) check(f);
+      if (f.id === 'reason') updateCounter();
+    });
+  });
+  updateCounter();
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var bad = fields.filter(function (f) { return !check(f); });
+    if (bad.length) {
+      setStatus('error', 'Please fix ' + bad.length + (bad.length === 1 ? ' field' : ' fields') + ' and try again.');
+      bad[0].focus();
+      return;
+    }
+    submitBtn.classList.add('sending');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+
+    // Demo only: nothing is sent or stored; the entry is shown on this page until it is removed or the page reloads
+    setTimeout(function () {
+      var name = document.getElementById('fullname').value.trim();
+      var email = document.getElementById('email').value.trim();
+
+      var li = document.createElement('li');
+      var text = document.createElement('span');
+      text.textContent = name + ' \u2013 ' + roleSelect.value + ' (' + email + ')';   // textContent keeps user input safe
+      var rm = document.createElement('button');
+      rm.type = 'button'; rm.className = 'remove';
+      rm.textContent = 'Remove';
+      rm.setAttribute('aria-label', 'Remove application from ' + name);
+      li.appendChild(text); li.appendChild(rm);
+      list.appendChild(li);
+      summary.hidden = false;
+
+      form.reset();
+      fields.forEach(clearField);
+      updateCounter();
+      showRoleInfo();
+      setStatus('success', 'Thank you, ' + name + '! Your application was received.');
+      submitBtn.classList.remove('sending');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit';
+    }, 1200);
+  });
+
+  // One listener on the list handles every Remove button (event delegation)
+  list.addEventListener('click', function (e) {
+    if (e.target.matches('.remove')) {
+      e.target.closest('li').remove();
+      if (!list.children.length) summary.hidden = true;
+    }
+  });
+})();
+
+/* ================= Lightbox for the image gallery (now follows the active filter) ================= */
+(function () {
+  var all = Array.prototype.slice.call(document.querySelectorAll('.gallery-item'));
+  var box = document.getElementById('lightbox');
+  var img = document.getElementById('lb-img');
+  var cap = document.getElementById('lb-cap');
+  var btnClose = document.getElementById('lb-close');
+  var btnPrev = document.getElementById('lb-prev');
+  var btnNext = document.getElementById('lb-next');
+  var current = 0;
+
+  function items() {   // only the images that are currently visible
+    return all.filter(function (it) { return !it.closest('li').hidden; });
+  }
+  function show(i) {
+    var list = items();
+    current = (i + list.length) % list.length;
+    var it = list[current];
+    img.src = it.dataset.full;
+    img.alt = it.querySelector('img').alt;
+    cap.textContent = it.dataset.caption;
+  }
+  function open(i) {
+    show(i);
+    box.hidden = false;
+    box.classList.add('open');
+    btnClose.focus();
+  }
+  function close() {
+    box.classList.remove('open');
+    box.hidden = true;
+    items()[current].focus();   // return focus to the thumbnail
+  }
+
+  all.forEach(function (it) {
+    it.addEventListener('click', function () { open(items().indexOf(it)); });
+  });
+  btnClose.addEventListener('click', close);
+  btnPrev.addEventListener('click', function () { show(current - 1); });
+  btnNext.addEventListener('click', function () { show(current + 1); });
+  box.addEventListener('click', function (e) { if (e.target === box) close(); });
+
+  document.addEventListener('keydown', function (e) {
+    if (box.hidden) return;
+    if (e.key === 'Escape') close();
+    else if (e.key === 'ArrowLeft') show(current - 1);
+    else if (e.key === 'ArrowRight') show(current + 1);
+    else if (e.key === 'Tab') {            // keep focus inside the dialog
+      var f = [btnClose, btnPrev, btnNext];
+      var idx = f.indexOf(document.activeElement);
+      e.preventDefault();
+      f[(idx + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+    }
+  });
+})();
+
+// Scroll progress bar
+var bar = document.getElementById('progress');
+window.addEventListener('scroll', function () {
+  var h = document.documentElement.scrollHeight - window.innerHeight;
+  bar.style.width = (h > 0 ? window.scrollY / h * 100 : 0) + '%';
+}, { passive: true });
+
+// Scroll-reveal using IntersectionObserver
+var reveals = document.querySelectorAll('.reveal');
+if ('IntersectionObserver' in window) {
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  reveals.forEach(function (el) { io.observe(el); });
+} else { reveals.forEach(function (el) { el.classList.add('visible'); }); }
+
+// Equaliser bars only move while audio plays
+var music = document.querySelector('.music'), audio = music.querySelector('audio');
+music.classList.add('paused');
+audio.addEventListener('play', function () { music.classList.remove('paused'); });
+audio.addEventListener('pause', function () { music.classList.add('paused'); });
+audio.addEventListener('ended', function () { music.classList.add('paused'); });
+
+// Count-up numbers when the stats come into view
+var counters = document.querySelectorAll('[data-count]');
+var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function countUp(el) {
+  var target = +el.dataset.count, suffix = el.dataset.suffix || '', t0 = null, dur = 1600;
+  if (reduce) { el.textContent = target.toLocaleString() + suffix; return; }
+  function tick(t) {
+    if (!t0) t0 = t;
+    var p = Math.min((t - t0) / dur, 1), eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(target * eased).toLocaleString() + suffix;
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+if ('IntersectionObserver' in window) {
+  var co = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) { countUp(e.target); co.unobserve(e.target); } });
+  }, { threshold: 0.6 });
+  counters.forEach(function (c) { co.observe(c); });
+} else { counters.forEach(countUp); }
+
+// Ripple effect on nav and form buttons
+document.querySelectorAll('nav a, nav button, form button').forEach(function (btn) {
+  btn.addEventListener('click', function (e) {
+    var r = btn.getBoundingClientRect(), size = Math.max(r.width, r.height);
+    var s = document.createElement('span'); s.className = 'ripple';
+    s.style.width = s.style.height = size + 'px';
+    s.style.left = (e.clientX - r.left - size / 2) + 'px';
+    s.style.top = (e.clientY - r.top - size / 2) + 'px';
+    btn.appendChild(s); setTimeout(function () { s.remove(); }, 650);
+  });
+});
+
+// Back-to-top appears after scrolling down
+var topBtn = document.querySelector('.back-top');
+window.addEventListener('scroll', function () { topBtn.classList.toggle('show', window.scrollY > 400); }, { passive: true });
+
+// Lightbox: slide direction
+(function () {
+  var img = document.getElementById('lb-img');
+  function dir(c) { img.classList.remove('slide-next', 'slide-prev'); void img.offsetWidth; img.classList.add(c); }
+  document.getElementById('lb-next').addEventListener('click', function () { dir('slide-next'); });
+  document.getElementById('lb-prev').addEventListener('click', function () { dir('slide-prev'); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') dir('slide-next'); else if (e.key === 'ArrowLeft') dir('slide-prev');
+  });
+})();
+/* ================= PRACTICUM 11: order form validation + bill ================= */
+(function () {
+  var form = document.getElementById('order-form');
+  var status = document.getElementById('order-status');
+  var bill = document.getElementById('bill');
+  var rows = Array.prototype.slice.call(form.querySelectorAll('.order-row'));
+  var itemsMsg = document.getElementById('order-items-msg');
+  var dateInput = document.getElementById('o-date');
+  var MAX_QTY = 99, GST = 18;
+  var money = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
+
+  // The delivery date cannot be in the past (local date, not UTC)
+  function isoToday(offsetDays) {
+    var d = new Date(); d.setDate(d.getDate() + (offsetDays || 0));
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  dateInput.min = isoToday(0);
+  dateInput.max = isoToday(365);
+
+  var rules = {
+    'o-name': function (v) {
+      v = v.trim();
+      if (!v) return 'Please enter the customer name.';
+      if (v.length < 2) return 'Name must be at least 2 characters.';
+      if (!/^[\p{L}][\p{L} .'-]*$/u.test(v)) return 'Use letters, spaces, dots, apostrophes or hyphens only.';
+      return '';
+    },
+    'o-phone': function (v) {
+      v = v.trim();
+      if (!v) return 'Please enter a phone number.';
+      if (!/^\d+$/.test(v)) return 'Digits only, no spaces or symbols.';
+      if (v.length !== 10) return 'Phone number must be exactly 10 digits.';
+      if (!/^[6-9]/.test(v)) return 'Mobile numbers start with 6, 7, 8 or 9.';
+      return '';
+    },
+    'o-date': function (v) {
+      if (!v) return 'Please choose a delivery date.';
+      if (v < isoToday(0)) return 'Delivery date cannot be in the past.';
+      if (v > isoToday(365)) return 'Choose a date within the next year.';
+      return '';
+    }
+  };
+
+  function show(field, msg, okText) {
+    var out = document.getElementById(field.id + '-msg');
+    field.classList.toggle('invalid', !!msg);
+    field.classList.toggle('valid', !msg);
+    field.setAttribute('aria-invalid', String(!!msg));
+    out.textContent = msg || okText || 'Looks good \u2713';
+    out.className = 'field-msg ' + (msg ? 'error' : 'ok');
+  }
+  function checkField(field) { var msg = rules[field.id](field.value); show(field, msg); return !msg; }
+  function clearField(field) {
+    field.classList.remove('valid', 'invalid'); field.removeAttribute('aria-invalid');
+    var out = document.getElementById(field.id + '-msg'); out.textContent = ''; out.className = 'field-msg';
+  }
+
+  // Quantity: whole number 0-99. Returns {ok, value, msg}
+  function parseQty(text) {
+    var t = text.trim();
+    if (t === '') return { ok: false, msg: 'Enter a quantity (0\u201399).' };
+    if (!/^\d+$/.test(t)) return { ok: false, msg: 'Quantity must be a whole number.' };
+    var n = parseInt(t, 10);
+    if (n > MAX_QTY) return { ok: false, msg: 'Maximum quantity is ' + MAX_QTY + '.' };
+    return { ok: true, value: n };
+  }
+  function rowParts(row) { return { input: row.querySelector('input'), total: row.querySelector('.line-total') }; }
+  function updateRow(row) {      // live line total: only shown for a valid quantity
+    var p = rowParts(row), r = parseQty(p.input.value);
+    p.input.classList.toggle('invalid', !r.ok);
+    p.input.setAttribute('aria-invalid', String(!r.ok));
+    p.total.textContent = r.ok ? money.format(r.value * +row.dataset.price) : '\u2014';
+    return r;
+  }
+
+  rows.forEach(function (row) {
+    var p = rowParts(row);
+    p.input.addEventListener('input', function () { updateRow(row); itemsMsg.textContent = ''; });
+    p.input.addEventListener('blur', function () {         // tidy up e.g. "007" -> 7
+      var r = parseQty(p.input.value); if (r.ok) p.input.value = r.value;
+    });
+    row.querySelectorAll('.step').forEach(function (btn) {  // + / - buttons stay inside 0-99
+      btn.addEventListener('click', function () {
+        var r = parseQty(p.input.value), cur = r.ok ? r.value : 0;
+        p.input.value = Math.min(MAX_QTY, Math.max(0, cur + +btn.dataset.dir));
+        updateRow(row); itemsMsg.textContent = '';
+      });
+    });
+  });
+  ['o-name', 'o-phone', 'o-date'].forEach(function (id) {
+    var f = document.getElementById(id);
+    f.addEventListener('blur', function () { checkField(f); });
+    f.addEventListener('input', function () {
+      if (id === 'o-phone') f.value = f.value.replace(/\D/g, '').slice(0, 10);   // block non-digits as typed
+      if (f.classList.contains('valid') || f.classList.contains('invalid')) checkField(f);
+    });
+    f.addEventListener('change', function () { checkField(f); });
+  });
+
+  function setStatus(type, text) { status.hidden = false; status.className = 'form-status ' + type; status.textContent = text; }
+
+  function cell(tag, text) { var c = document.createElement(tag); c.textContent = text; return c; }
+  function renderBill(customer, lines, subtotal) {
+    var gst = Math.round(subtotal * GST) / 100, total = subtotal + gst;
+    bill.textContent = '';
+    var h = document.createElement('h3'); h.textContent = 'Your bill';
+    var meta = document.createElement('p'); meta.className = 'meta';
+    meta.textContent = customer.name + ' \u2022 ' + customer.phone + ' \u2022 Delivery on ' +
+      new Date(customer.date + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    var table = document.createElement('table');
+    var thead = document.createElement('thead'), hr = document.createElement('tr');
+    ['Service', 'Qty', 'Rate', 'Amount'].forEach(function (t) { hr.appendChild(cell('th', t)); });
+    thead.appendChild(hr); table.appendChild(thead);
+    var tbody = document.createElement('tbody');
+    lines.forEach(function (l) {
+      var tr = document.createElement('tr');
+      tr.appendChild(cell('td', l.name)); tr.appendChild(cell('td', String(l.qty)));
+      tr.appendChild(cell('td', money.format(l.price))); tr.appendChild(cell('td', money.format(l.qty * l.price)));
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    var tfoot = document.createElement('tfoot');
+    [['Subtotal', subtotal, ''], ['GST (' + GST + '%)', gst, ''], ['Total payable', total, 'grand']].forEach(function (r) {
+      var tr = document.createElement('tr'); if (r[2]) tr.className = r[2];
+      var label = cell('td', r[0]); label.colSpan = 3;
+      tr.appendChild(label); tr.appendChild(cell('td', money.format(r[1]))); tfoot.appendChild(tr);
+    });
+    table.appendChild(tfoot);
+    bill.appendChild(h); bill.appendChild(meta); bill.appendChild(table);
+    bill.hidden = false;
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var problems = [], firstBad = null;
+    ['o-name', 'o-phone', 'o-date'].forEach(function (id) {
+      var f = document.getElementById(id);
+      if (!checkField(f)) { problems.push(id); if (!firstBad) firstBad = f; }
+    });
+    var lines = [], subtotal = 0, qtyBad = false;
+    rows.forEach(function (row) {
+      var r = updateRow(row), p = rowParts(row);
+      if (!r.ok) { qtyBad = true; if (!firstBad) firstBad = p.input; itemsMsg.textContent = row.dataset.name + ': ' + r.msg; itemsMsg.className = 'order-msg error'; return; }
+      if (r.value > 0) { lines.push({ name: row.dataset.name, qty: r.value, price: +row.dataset.price }); subtotal += r.value * +row.dataset.price; }
+    });
+    if (!qtyBad && !lines.length) {
+      itemsMsg.textContent = 'Select at least one service (quantity 1 or more).'; itemsMsg.className = 'order-msg error';
+      if (!firstBad) firstBad = rows[0].querySelector('input');
+      qtyBad = true;
+    }
+    if (problems.length || qtyBad) {       // nothing is calculated until every rule passes
+      bill.hidden = true;
+      setStatus('error', 'Please fix the highlighted fields before calculating the bill.');
+      firstBad.focus();
+      return;
+    }
+    itemsMsg.textContent = ''; itemsMsg.className = 'order-msg';
+    renderBill({ name: document.getElementById('o-name').value.trim(), phone: document.getElementById('o-phone').value, date: dateInput.value }, lines, subtotal);
+    setStatus('success', 'Order details are valid. Your bill is shown below.');
+    bill.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  form.addEventListener('reset', function () {
+    setTimeout(function () {
+      ['o-name', 'o-phone', 'o-date'].forEach(function (id) { clearField(document.getElementById(id)); });
+      rows.forEach(function (r) { rowParts(r).input.classList.remove('invalid'); updateRow(r); });
+      itemsMsg.textContent = ''; status.hidden = true; bill.hidden = true;
+    }, 0);
+  });
+})();
+
+/* ================= PRACTICUM 12: endpoint data management (Fetch API) ================= */
+(function () {
+  var BASE = 'https://jsonplaceholder.typicode.com';
+  var TIMEOUT_MS = 8000;
+  var form = document.getElementById('endpoint-form');
+  var source = document.getElementById('ep-source');
+  var search = document.getElementById('ep-search');
+  var limit = document.getElementById('ep-limit');
+  var loadBtn = document.getElementById('ep-load');
+  var clearBtn = document.getElementById('ep-clear');
+  var out = document.getElementById('ep-output');
+  var reqLine = document.getElementById('ep-request');
+  var controller = null;
+  var records = [];
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined) n.textContent = text;      // textContent only: API data is never parsed as HTML
+    return n;
+  }
+
+  /* Input validation (live messages, same style as the other forms) */
+  function setMsg(input, msg) {
+    var m = document.getElementById(input.id + '-msg');
+    m.textContent = msg || (input.value ? 'Looks good.' : '');
+    m.className = 'field-msg ' + (msg ? 'error' : (input.value ? 'ok' : ''));
+    input.classList.toggle('invalid', !!msg);
+    input.classList.toggle('valid', !msg && !!input.value);
+    return !msg;
+  }
+  function checkSearch() {
+    var v = search.value.trim();
+    return setMsg(search, v && !/^[A-Za-z .'-]{1,30}$/.test(v) ? 'Use letters, spaces, . - and \' only (max 30).' : '');
+  }
+  function checkLimit() {
+    var v = limit.value.trim(), n = Number(v);
+    return setMsg(limit, !/^\d+$/.test(v) || n < 1 || n > 10 ? 'Enter a whole number from 1 to 10.' : '');
+  }
+  search.addEventListener('input', checkSearch);
+  limit.addEventListener('input', checkLimit);
+
+  /* UI states: loading / empty / error / data */
+  function busy(on) { out.setAttribute('aria-busy', String(on)); loadBtn.disabled = on; }
+  function showState(kind, text, retry) {
+    out.textContent = '';
+    var box = el('div', 'ep-state ' + kind);
+    if (kind === 'loading') box.appendChild(el('span', 'ep-spinner'));
+    box.appendChild(document.createTextNode(text));
+    if (retry) {
+      var b = el('button', '', 'Try again');
+      b.type = 'button';
+      b.addEventListener('click', load);
+      box.appendChild(document.createElement('br'));
+      box.appendChild(b);
+    }
+    out.appendChild(box);
+  }
+  function render() {
+    if (!records.length) { showState('empty', 'The request succeeded, but there are no partner records to show.'); return; }
+    out.textContent = '';
+    var ul = el('ul', 'ep-list');
+    records.forEach(function (r) {
+      var li = el('li');
+      var info = el('span');
+      info.appendChild(el('strong', '', r.name));
+      info.appendChild(el('span', 'ep-meta', r.email + (r.address && r.address.city ? ' \u2022 ' + r.address.city : '')));
+      var del = el('button', 'remove', 'Remove');
+      del.type = 'button';
+      del.setAttribute('aria-label', 'Remove ' + r.name);
+      del.addEventListener('click', function () { removeRecord(r, del); });
+      li.appendChild(info); li.appendChild(del);
+      ul.appendChild(li);
+    });
+    out.appendChild(ul);
+  }
+
+  /* READ: GET request, check status, check content type, parse JSON, check structure */
+  async function load() {
+    if (!checkSearch() | !checkLimit()) return;       // single | so both messages show
+    if (controller) controller.abort();
+    controller = new AbortController();
+    var timedOut = false;
+    var timer = setTimeout(function () { timedOut = true; controller.abort(); }, TIMEOUT_MS);
+    var url = /^https?:/.test(source.value) ? source.value : BASE + source.value;
+    var t0 = performance.now();
+    reqLine.hidden = false;
+    reqLine.textContent = 'GET ' + url;
+    busy(true);
+    showState('loading', 'Loading partner data\u2026');
+    try {
+      var res = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' }, signal: controller.signal });
+      reqLine.textContent = 'GET ' + url + '  \u2192  ' + res.status + ' ' + (res.statusText || '') + ' (' + Math.round(performance.now() - t0) + ' ms)';
+      if (!res.ok) {
+        var e = new Error(res.status === 404
+          ? 'Error 404: the endpoint was not found.'
+          : 'The server answered with HTTP status ' + res.status + '.');
+        e.handled = true; throw e;
+      }
+      var data;
+      try { data = await res.json(); }
+      catch (parseErr) { var pe = new Error('The server replied, but the response was not valid JSON.'); pe.handled = true; throw pe; }
+      if (!Array.isArray(data)) { var se = new Error('Unexpected data format: a list of records was expected.'); se.handled = true; throw se; }
+      var term = search.value.trim().toLowerCase();
+      records = data.filter(function (r) { return r && r.id !== undefined && typeof r.name === 'string' && typeof r.email === 'string'; })
+                    .filter(function (r) { return !term || r.name.toLowerCase().indexOf(term) !== -1; })
+                    .slice(0, Number(limit.value));
+      render();
+    } catch (err) {
+      if (err.name === 'AbortError' && !timedOut) return;   // replaced by a newer request or cleared
+      var msg = err.handled ? err.message
+        : timedOut ? 'The request timed out after ' + (TIMEOUT_MS / 1000) + ' seconds.'
+        : 'Network error: the server could not be reached. Check your connection and try again.';
+      showState('error', msg, true);
+    } finally {
+      clearTimeout(timer);
+      busy(false);
+    }
+  }
+
+  /* DELETE: remove from the page only after the server confirms success */
+  async function removeRecord(rec, btn) {
+    if (!window.confirm('Remove ' + rec.name + ' from the directory?')) return;
+    btn.disabled = true; btn.textContent = 'Removing\u2026';
+    var url = BASE + '/users/' + encodeURIComponent(rec.id);
+    try {
+      var res = await fetch(url, { method: 'DELETE' });
+      reqLine.textContent = 'DELETE ' + url + '  \u2192  ' + res.status + ' ' + (res.statusText || '');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      records = records.filter(function (r) { return r !== rec; });
+      render();
+    } catch (err) {
+      btn.disabled = false; btn.textContent = 'Remove';
+      reqLine.textContent = 'DELETE ' + url + '  \u2192  failed. ' + rec.name + ' was not removed; please try again.';
+    }
+  }
+
+  form.addEventListener('submit', function (e) { e.preventDefault(); load(); });
+  clearBtn.addEventListener('click', function () {
+    if (controller) controller.abort();
+    records = []; out.textContent = ''; reqLine.hidden = true; busy(false);
+    search.value = ''; limit.value = '5';
+    checkSearch(); checkLimit();
+  });
+})();
+
+/* ================= PRACTICUM 13: task manager (state + localStorage) ================= */
+(function () {
+  var KEY = 'ecosphere-tasks';
+  var form = document.getElementById('task-form');
+  var titleIn = document.getElementById('task-title');
+  var priIn = document.getElementById('task-priority');
+  var submitBtn = document.getElementById('task-submit');
+  var cancelBtn = document.getElementById('task-cancel');
+  var statusBox = document.getElementById('task-status');
+  var listEl = document.getElementById('task-list');
+  var countEl = document.getElementById('task-count');
+  var filterBtns = document.querySelectorAll('.task-filter');
+  var tasks = [];            // application state: [{id, title, priority, done}]
+  var filter = 'all';
+  var editingId = null;
+  var PRI = { high: 'High', medium: 'Medium', low: 'Low' };
+
+  /* Persistence: serialise the whole list to localStorage, validate it when reading back */
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(tasks)); return true; }
+    catch (err) { notify('Could not save: browser storage is blocked or full.', 'error'); return false; }
+  }
+  function restore() {
+    try {
+      var data = JSON.parse(localStorage.getItem(KEY) || '[]');
+      if (!Array.isArray(data)) return [];
+      return data.filter(function (t) { return t && typeof t.id === 'string' && typeof t.title === 'string' && PRI[t.priority]; })
+                 .map(function (t) { return { id: t.id, title: t.title.slice(0, 80), priority: t.priority, done: t.done === true }; });
+    } catch (err) { return []; }      // storage blocked or corrupted JSON: start with an empty list
+  }
+
+  function notify(msg, kind) {
+    statusBox.hidden = !msg; statusBox.textContent = msg || ''; statusBox.className = 'form-status ' + (kind || 'success');
+  }
+  function validate() {
+    var v = titleIn.value.trim().replace(/\s+/g, ' '), msg = '';
+    if (v.length < 3) msg = 'Enter a task of at least 3 characters.';
+    else if (tasks.some(function (t) { return t.id !== editingId && t.title.toLowerCase() === v.toLowerCase(); })) msg = 'This task is already on the list.';
+    var m = document.getElementById('task-title-msg');
+    m.textContent = msg || (v ? 'Looks good.' : '');
+    m.className = 'field-msg ' + (msg ? 'error' : (v ? 'ok' : ''));
+    titleIn.classList.toggle('invalid', !!msg); titleIn.classList.toggle('valid', !msg && !!v);
+    return msg ? null : v;
+  }
+  titleIn.addEventListener('input', validate);
+
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; }
+
+  function render() {
+    var shown = tasks.filter(function (t) { return filter === 'all' || (filter === 'done') === t.done; });
+    var left = tasks.filter(function (t) { return !t.done; }).length;
+    countEl.textContent = tasks.length + ' task' + (tasks.length === 1 ? '' : 's') + ' \u2022 ' + left + ' left to do';
+    listEl.textContent = '';
+    if (!shown.length) {
+      listEl.appendChild(el('li', 'task-empty', tasks.length ? 'No tasks match this filter.' : 'No tasks yet. Add your first task above.'));
+      listEl.lastChild.style.display = 'block';
+    }
+    shown.forEach(function (t) {
+      var li = el('li', 'p-' + t.priority + (t.done ? ' done' : ''));
+      li.dataset.id = t.id;
+      var cb = el('input'); cb.type = 'checkbox'; cb.checked = t.done; cb.setAttribute('aria-label', 'Mark "' + t.title + '" as completed');
+      var info = el('span'); info.appendChild(el('span', 't-title', t.title)); info.appendChild(el('span', 't-pri', PRI[t.priority] + ' priority'));
+      var acts = el('span', 't-actions');
+      var ed = el('button', 'edit', 'Edit'); ed.type = 'button'; ed.setAttribute('aria-label', 'Edit ' + t.title);
+      var del = el('button', 'remove', 'Delete'); del.type = 'button'; del.setAttribute('aria-label', 'Delete ' + t.title);
+      acts.appendChild(ed); acts.appendChild(del);
+      li.appendChild(cb); li.appendChild(info); li.appendChild(acts);
+      listEl.appendChild(li);
+    });
+  }
+
+  function stopEditing() {
+    editingId = null; submitBtn.textContent = 'Add Task'; cancelBtn.hidden = true;
+    form.reset(); priIn.value = 'medium'; validate();
+  }
+
+  /* CREATE + UPDATE */
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = validate();
+    if (!v) { notify('Please fix the task title before saving.', 'error'); titleIn.focus(); return; }
+    if (editingId) {
+      var t = tasks.filter(function (x) { return x.id === editingId; })[0];
+      if (t) { t.title = v; t.priority = priIn.value; }
+      notify('Task updated.');
+    } else {
+      tasks.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: v, priority: priIn.value, done: false });
+      notify('Task added.');
+    }
+    save(); stopEditing(); render();
+  });
+  cancelBtn.addEventListener('click', function () { stopEditing(); notify('Edit cancelled.'); });
+
+  /* Complete / Edit / Delete: one listener on the list (event delegation) */
+  function find(target) {
+    var li = target.closest('li[data-id]');
+    return li ? tasks.filter(function (t) { return t.id === li.dataset.id; })[0] : null;
+  }
+  listEl.addEventListener('change', function (e) {
+    var t = find(e.target);
+    if (t && e.target.type === 'checkbox') { t.done = e.target.checked; save(); render(); }
+  });
+  listEl.addEventListener('click', function (e) {
+    var t = find(e.target);
+    if (!t) return;
+    if (e.target.classList.contains('remove')) {
+      tasks = tasks.filter(function (x) { return x !== t; });
+      if (editingId === t.id) stopEditing();
+      save(); render(); notify('Task deleted.');
+    } else if (e.target.classList.contains('edit')) {
+      editingId = t.id; titleIn.value = t.title; priIn.value = t.priority;
+      submitBtn.textContent = 'Save Changes'; cancelBtn.hidden = false;
+      validate(); titleIn.focus(); notify('Editing "' + t.title + '".');
+    }
+  });
+  document.getElementById('task-clear-done').addEventListener('click', function () {
+    var n = tasks.filter(function (t) { return t.done; }).length;
+    if (!n) { notify('No completed tasks to clear.', 'error'); return; }
+    tasks = tasks.filter(function (t) { return !t.done; });
+    if (editingId && !tasks.some(function (t) { return t.id === editingId; })) stopEditing();
+    save(); render(); notify(n + ' completed task' + (n === 1 ? '' : 's') + ' cleared.');
+  });
+
+  filterBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      filter = b.dataset.tfilter;
+      filterBtns.forEach(function (x) { var on = x === b; x.classList.toggle('active', on); x.setAttribute('aria-pressed', String(on)); });
+      render();
+    });
+  });
+
+  tasks = restore();      // saved tasks come back after a page reload
+  render();
+})();
+</script>
+
+</body>
+</html>
